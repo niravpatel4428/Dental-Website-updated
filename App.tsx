@@ -5,13 +5,23 @@ import { SERVICES, REVIEWS, FAQS, PRICING, WHY_CHOOSE_US } from './constants';
 import { AIChat } from './components/AIChat';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 const App: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  // Contact Form State
+  const [contactForm, setContactForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    service: '',
+    message: ''
+  });
 
   // Refs for animation context
   const mainRef = useRef<HTMLDivElement>(null);
@@ -82,7 +92,7 @@ const App: React.FC = () => {
       });
 
       // 4. Services Stagger - Individual Triggers
-      gsap.utils.toArray('.services-grid').forEach((card: any, i) => {
+      gsap.utils.toArray('.service-card').forEach((card: any, i) => {
         gsap.from(card, {
           y: 50,
           opacity: 0,
@@ -114,7 +124,7 @@ const App: React.FC = () => {
       });
 
       // 6. Why Choose Us (Icon Pop) - Individual Triggers
-      gsap.utils.toArray('.features-grid').forEach((item: any, i) => {
+      gsap.utils.toArray('.feature-item').forEach((item: any, i) => {
         gsap.from(item, {
           scale: 0.9,
           opacity: 0,
@@ -131,7 +141,7 @@ const App: React.FC = () => {
       });
 
       // 7. Reviews Slide - Individual Triggers
-      gsap.utils.toArray('.reviews-grid').forEach((card: any, i) => {
+      gsap.utils.toArray('.review-card').forEach((card: any, i) => {
         gsap.from(card, {
           x: 50,
           opacity: 0,
@@ -147,7 +157,7 @@ const App: React.FC = () => {
       });
 
        // 8. Pricing Pop - Individual Triggers
-       gsap.utils.toArray('.pricing-grid').forEach((card: any, i) => {
+       gsap.utils.toArray('.pricing-card').forEach((card: any, i) => {
         gsap.from(card, {
           y: 50,
           opacity: 0,
@@ -188,6 +198,43 @@ const App: React.FC = () => {
     { name: 'Contact', href: '#contact' },
   ];
 
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const targetId = href.substring(1);
+    const targetElement = document.getElementById(targetId);
+    
+    if (targetElement) {
+      setMobileMenuOpen(false);
+      // Offset of 60px to ensure the section tucks slightly under the header (~64px-68px), eliminating any gap.
+      gsap.to(window, {
+        duration: 1,
+        scrollTo: { y: targetElement, offsetY: 60 },
+        ease: "power3.inOut"
+      });
+    }
+  };
+
+  const handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setContactForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const { firstName, lastName, email, service, message } = contactForm;
+    
+    const subject = `New Appointment Request from ${firstName} ${lastName}`;
+    const body = `Name: ${firstName} ${lastName}\nEmail: ${email}\nService: ${service || 'General Inquiry'}\n\nMessage:\n${message}`;
+    
+    // Construct mailto link
+    const mailtoLink = `mailto:nirav.jivani6@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    // Open email client
+    window.location.href = mailtoLink;
+  };
+
+  const preventDefault = (e: React.MouseEvent) => e.preventDefault();
+
   return (
     <div ref={mainRef} className="font-sans text-slate-800 bg-white overflow-x-hidden selection:bg-primary-200 selection:text-primary-900">
       
@@ -195,14 +242,14 @@ const App: React.FC = () => {
       <div className="bg-secondary-900 text-slate-300 py-2.5 text-xs md:text-sm hidden lg:block border-b border-white/5 relative z-50">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <div className="flex gap-8">
-            <span className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer"><Phone size={14} className="text-primary-500" /> (555) 123-4567</span>
-            <span className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer"><MapPin size={14} className="text-primary-500" /> 123 Medical Plaza, Suite 400</span>
+            <a href="tel:5551234567" className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer"><Phone size={14} className="text-primary-500" /> (555) 123-4567</a>
+            <a href="https://maps.google.com/?q=123+Medical+Plaza,+New+York,+NY" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer"><MapPin size={14} className="text-primary-500" /> 123 Medical Plaza, Suite 400</a>
           </div>
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-2"><Clock size={14} className="text-primary-500" /> Mon - Fri: 9:00 AM - 6:00 PM</span>
             <div className="flex gap-4 border-l border-white/10 pl-6">
               {[Facebook, Instagram, Twitter, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" className="hover:text-primary-400 transition-colors transform hover:scale-110"><Icon size={14}/></a>
+                <a key={i} href="#" onClick={preventDefault} className="hover:text-primary-400 transition-colors transform hover:scale-110"><Icon size={14}/></a>
               ))}
             </div>
           </div>
@@ -212,7 +259,7 @@ const App: React.FC = () => {
       {/* Navbar */}
       <nav className={`fixed w-full z-40 transition-all duration-500 ${isScrolled ? 'bg-white/95 backdrop-blur-xl shadow-lg py-3 top-0' : 'bg-transparent py-6 top-0 lg:top-8'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <a href="#" className="flex items-center gap-2.5 group">
+          <a href="#home" onClick={(e) => scrollToSection(e, '#home')} className="flex items-center gap-2.5 group">
              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-primary-500/30 group-hover:shadow-primary-500/50 transition-all duration-300">L</div>
              <span className={`text-2xl font-extrabold tracking-tight ${isScrolled ? 'text-secondary-900' : 'text-secondary-900 lg:text-white'}`}>Lumina<span className="text-primary-500">Dental</span></span>
           </a>
@@ -222,14 +269,19 @@ const App: React.FC = () => {
             {navLinks.map((link) => (
               <a 
                 key={link.name} 
-                href={link.href} 
+                href={link.href}
+                onClick={(e) => scrollToSection(e, link.href)}
                 className={`font-semibold text-sm tracking-wide uppercase hover:text-primary-500 transition-colors relative group py-2 ${isScrolled ? 'text-secondary-600' : 'text-white/90'}`}
               >
                 {link.name}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 ease-out group-hover:w-full"></span>
               </a>
             ))}
-            <a href="#contact" className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-lg hover:shadow-primary-500/40 flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0">
+            <a 
+              href="#contact"
+              onClick={(e) => scrollToSection(e, '#contact')}
+              className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-lg hover:shadow-primary-500/40 flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0"
+            >
               Book Appointment
             </a>
           </div>
@@ -250,20 +302,29 @@ const App: React.FC = () => {
               <a 
                 key={link.name} 
                 href={link.href}
+                onClick={(e) => scrollToSection(e, link.href)}
                 className="text-lg font-medium text-secondary-700 py-3 border-b border-gray-50 hover:text-primary-600 px-2 rounded-lg hover:bg-gray-50 transition-colors flex justify-between items-center group"
-                onClick={() => setMobileMenuOpen(false)}
               >
                 {link.name}
                 <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all"/>
               </a>
             ))}
             <a 
-              href="#contact" 
+              href="#contact"
+              onClick={(e) => scrollToSection(e, '#contact')}
               className="bg-primary-600 text-white text-center py-4 rounded-xl font-bold mt-4 shadow-lg active:scale-95 transition-transform"
-              onClick={() => setMobileMenuOpen(false)}
             >
               Book Appointment
             </a>
+            
+             {/* Social Icons for Mobile */}
+             <div className="flex gap-6 justify-center mt-6 pt-6 border-t border-gray-100">
+              {[Facebook, Instagram, Twitter, Linkedin].map((Icon, i) => (
+                 <a key={i} href="#" onClick={preventDefault} className="text-secondary-400 hover:text-primary-600 transition-colors transform active:scale-95">
+                   <Icon size={24} />
+                 </a>
+              ))}
+            </div>
           </div>
         </div>
       </nav>
@@ -277,7 +338,7 @@ const App: React.FC = () => {
             alt="Modern Dental Clinic" 
             className="w-full h-full object-cover opacity-60"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-secondary-950 via-secondary-900/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-secondary-900 via-secondary-900/80 to-transparent"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-secondary-900 via-transparent to-transparent"></div>
         </div>
 
@@ -302,10 +363,18 @@ const App: React.FC = () => {
               Experience world-class dental care where advanced technology meets compassionate treatment. Your journey to a perfect smile begins here.
             </p>
             <div className="flex flex-col sm:flex-row gap-5">
-              <a href="#contact" className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_30px_rgba(20,184,166,0.5)] text-center flex justify-center items-center gap-2 group">
+              <a 
+                href="#contact"
+                onClick={(e) => scrollToSection(e, '#contact')}
+                className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_30px_rgba(20,184,166,0.5)] text-center flex justify-center items-center gap-2 group"
+              >
                 Book Appointment <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
               </a>
-              <a href="#services" className="bg-white/5 hover:bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-full font-bold text-lg transition-all text-center hover:border-white/40">
+              <a 
+                href="#services"
+                onClick={(e) => scrollToSection(e, '#services')}
+                className="bg-white/5 hover:bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-full font-bold text-lg transition-all text-center hover:border-white/40"
+              >
                 Explore Services
               </a>
             </div>
@@ -328,7 +397,11 @@ const App: React.FC = () => {
         </div>
         
         {/* Scroll Indicator */}
-        <a href="#about" className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/50 animate-bounce cursor-pointer hover:text-white transition-colors z-20">
+        <a 
+          href="#about"
+          onClick={(e) => scrollToSection(e, '#about')}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/50 animate-bounce cursor-pointer hover:text-white transition-colors z-20"
+        >
            <ChevronDown size={32} />
         </a>
       </section>
@@ -393,7 +466,7 @@ const App: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-6">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Signature_sample.svg" alt="Signature" className="h-12 opacity-40 hover:opacity-100 transition-opacity" />
+              <span className="font-signature text-4xl md:text-5xl text-secondary-800 opacity-80 hover:opacity-100 transition-opacity cursor-default -rotate-2 select-none">Dr. Emily Chen</span>
               <div className="h-10 w-px bg-slate-200"></div>
               <div className="text-sm font-bold text-secondary-900 uppercase tracking-widest">
                 Lead Dentist
@@ -412,7 +485,7 @@ const App: React.FC = () => {
             <p className="text-slate-500 text-lg">From routine hygiene to full mouth reconstruction, we use the latest technology to ensure the best outcomes for your oral health.</p>
           </div>
 
-          <div id="services-grid" className="services-grid grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div id="services-grid" className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {SERVICES.map((service, i) => {
               const Icon = (Icons as any)[service.iconName] || Icons.Activity;
               return (
@@ -425,7 +498,11 @@ const App: React.FC = () => {
                   </div>
                   <h3 className="text-2xl font-bold text-secondary-900 group-hover:text-white mb-4 relative z-10 transition-colors">{service.title}</h3>
                   <p className="text-slate-500 group-hover:text-slate-400 mb-8 leading-relaxed relative z-10 transition-colors">{service.description}</p>
-                  <a href="#contact" className="inline-flex items-center text-primary-600 group-hover:text-white font-bold tracking-wide relative z-10 text-sm uppercase">
+                  <a 
+                    href="#contact"
+                    onClick={(e) => scrollToSection(e, '#contact')}
+                    className="inline-flex items-center text-primary-600 group-hover:text-white font-bold tracking-wide relative z-10 text-sm uppercase"
+                  >
                     Learn More <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
                   </a>
                 </div>
@@ -449,7 +526,7 @@ const App: React.FC = () => {
           <div className="grid md:grid-cols-2 gap-10">
             {[
               { title: "Complete Smile Makeover", desc: "Porcelain veneers to correct spacing and discoloration.", img: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=800", badge: "Veneers" },
-              { title: "Zoom! Whitening", desc: "4 shades whiter in just one 60-minute session.", img: "https://images.unsplash.com/photo-1588776814546-1b936d544c1b?auto=format&fit=crop&q=80&w=800", badge: "Whitening" }
+              { title: "Zoom! Whitening", desc: "4 shades whiter in just one 60-minute session.", img: "https://images.unsplash.com/photo-1598256989800-fe5f95da9787?auto=format&fit=crop&q=80&w=800", badge: "Whitening" }
             ].map((item, idx) => (
                <div key={idx} className="gallery-card group cursor-pointer relative">
                   <div className="relative overflow-hidden rounded-[2rem] mb-6 shadow-lg aspect-[4/3] transform transition-transform duration-500 group-hover:shadow-2xl">
@@ -463,7 +540,6 @@ const App: React.FC = () => {
                     <div className="absolute bottom-0 left-0 w-full p-8 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out">
                        <h3 className="text-2xl font-bold text-white mb-2">{item.title}</h3>
                        <p className="text-white/80 mb-6">{item.desc}</p>
-                       <button className="bg-white text-secondary-900 px-6 py-3 rounded-xl font-bold w-full hover:bg-primary-50 transition-colors">View Case Study</button>
                     </div>
                   </div>
                   <div className="group-hover:opacity-0 transition-opacity duration-300">
@@ -490,11 +566,15 @@ const App: React.FC = () => {
                   <p className="text-slate-400 text-lg leading-relaxed mb-8">
                      We combine art, science, and technology to provide the highest standard of dental care. Our patient-first approach ensures you feel heard, comfortable, and cared for at every step.
                   </p>
-                  <a href="#contact" className="inline-flex items-center gap-2 text-white font-bold border-b border-primary-500 pb-1 hover:text-primary-400 transition-colors">
+                  <a 
+                    href="#contact"
+                    onClick={(e) => scrollToSection(e, '#contact')}
+                    className="inline-flex items-center gap-2 text-white font-bold border-b border-primary-500 pb-1 hover:text-primary-400 transition-colors"
+                  >
                     Schedule Your Visit <ArrowRight size={16}/>
                   </a>
                </div>
-               <div id="features-grid" className="features-grid grid sm:grid-cols-2 gap-6">
+               <div id="features-grid" className="grid sm:grid-cols-2 gap-6">
                   {WHY_CHOOSE_US.map((item, idx) => {
                      const Icon = (Icons as any)[item.iconName] || Icons.Check;
                      return (
@@ -519,7 +599,7 @@ const App: React.FC = () => {
             <div className="text-primary-600 font-bold uppercase tracking-widest text-sm mb-3">Testimonials</div>
             <h2 className="text-4xl font-bold text-secondary-900">What Our Patients Say</h2>
           </div>
-          <div id="reviews-grid" className="reviews-grid grid md:grid-cols-3 gap-8">
+          <div id="reviews-grid" className="grid md:grid-cols-3 gap-8">
             {REVIEWS.map((review) => (
               <div key={review.id} className="review-card bg-white p-10 rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300 relative group border border-slate-100">
                 <Icons.Quote className="absolute top-8 right-8 text-primary-100 group-hover:text-primary-200 transition-colors" size={60} />
@@ -555,7 +635,7 @@ const App: React.FC = () => {
             <p className="text-slate-600 text-lg">No hidden fees. Just clear, honest pricing for your dental care.</p>
           </div>
 
-          <div id="pricing-grid" className="pricing-grid grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
+          <div id="pricing-grid" className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
             {PRICING.map((item, idx) => (
               <div key={idx} className={`pricing-card rounded-[2.5rem] p-10 transition-all duration-300 relative ${idx === 1 ? 'bg-secondary-900 text-white shadow-2xl scale-110 z-10 border-none ring-4 ring-primary-500/20' : 'bg-white border border-slate-100 text-secondary-900 hover:border-primary-200 shadow-xl hover:shadow-2xl'}`}>
                 {idx === 1 && (
@@ -578,7 +658,11 @@ const App: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-                <a href="#contact" className={`block text-center py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 ${idx === 1 ? 'bg-primary-500 text-white hover:bg-primary-600' : 'bg-secondary-50 text-secondary-900 hover:bg-secondary-100'}`}>
+                <a 
+                  href="#contact"
+                  onClick={(e) => scrollToSection(e, '#contact')}
+                  className={`block text-center py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 ${idx === 1 ? 'bg-primary-500 text-white hover:bg-primary-600' : 'bg-secondary-50 text-secondary-900 hover:bg-secondary-100'}`}
+                >
                   Select Plan
                 </a>
               </div>
@@ -643,25 +727,54 @@ const App: React.FC = () => {
             {/* Form Side */}
             <div className="p-10 md:p-16 bg-white order-2 lg:order-1">
               <h3 className="text-2xl font-bold text-secondary-900 mb-8">Send us a Message</h3>
-              <form className="space-y-5">
+              <form className="space-y-5" onSubmit={handleContactSubmit}>
                 <div className="grid md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">First Name</label>
-                     <input type="text" className="w-full px-5 py-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all text-secondary-900 placeholder-slate-400 font-medium outline-none" placeholder="John" />
+                     <input 
+                       type="text" 
+                       name="firstName"
+                       value={contactForm.firstName}
+                       onChange={handleContactChange}
+                       required
+                       className="w-full px-5 py-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all text-secondary-900 placeholder-slate-400 font-medium outline-none" 
+                       placeholder="John" 
+                     />
                   </div>
                   <div className="space-y-2">
                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Last Name</label>
-                     <input type="text" className="w-full px-5 py-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all text-secondary-900 placeholder-slate-400 font-medium outline-none" placeholder="Doe" />
+                     <input 
+                       type="text" 
+                       name="lastName"
+                       value={contactForm.lastName}
+                       onChange={handleContactChange}
+                       required
+                       className="w-full px-5 py-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all text-secondary-900 placeholder-slate-400 font-medium outline-none" 
+                       placeholder="Doe" 
+                     />
                   </div>
                 </div>
                 <div className="space-y-2">
                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Email</label>
-                   <input type="email" className="w-full px-5 py-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all text-secondary-900 placeholder-slate-400 font-medium outline-none" placeholder="john@example.com" />
+                   <input 
+                     type="email" 
+                     name="email"
+                     value={contactForm.email}
+                     onChange={handleContactChange}
+                     required
+                     className="w-full px-5 py-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all text-secondary-900 placeholder-slate-400 font-medium outline-none" 
+                     placeholder="john@example.com" 
+                   />
                 </div>
                 <div className="space-y-2">
                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Service</label>
                    <div className="relative">
-                      <select className="w-full px-5 py-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all text-secondary-900 font-medium appearance-none outline-none cursor-pointer">
+                      <select 
+                        name="service"
+                        value={contactForm.service}
+                        onChange={handleContactChange}
+                        className="w-full px-5 py-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all text-secondary-900 font-medium appearance-none outline-none cursor-pointer"
+                      >
                         <option value="">Select a Treatment</option>
                         <option value="checkup">General Checkup</option>
                         <option value="cleaning">Professional Cleaning</option>
@@ -673,7 +786,14 @@ const App: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Message</label>
-                   <textarea rows={4} className="w-full px-5 py-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all text-secondary-900 placeholder-slate-400 font-medium resize-none outline-none" placeholder="Tell us about your needs..."></textarea>
+                   <textarea 
+                     name="message"
+                     value={contactForm.message}
+                     onChange={handleContactChange}
+                     rows={4} 
+                     className="w-full px-5 py-4 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 transition-all text-secondary-900 placeholder-slate-400 font-medium resize-none outline-none" 
+                     placeholder="Tell us about your needs..."
+                   ></textarea>
                 </div>
                 <button type="submit" className="w-full bg-secondary-900 text-white font-bold py-5 rounded-xl hover:bg-primary-600 transition-all shadow-lg mt-6 flex justify-center items-center gap-2 group">
                   Request Appointment <Icons.Send size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -686,7 +806,7 @@ const App: React.FC = () => {
                <div className="relative z-10 p-12 lg:p-16 text-white bg-gradient-to-b from-secondary-900/90 to-secondary-900/0">
                   <h3 className="text-3xl font-bold mb-10">Contact Information</h3>
                   <div className="space-y-8">
-                     <div className="flex items-start gap-6 group cursor-pointer">
+                     <a href="tel:5551234567" className="flex items-start gap-6 group cursor-pointer">
                         <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-primary-600 transition-colors">
                            <Phone className="text-white" size={24}/>
                         </div>
@@ -695,8 +815,8 @@ const App: React.FC = () => {
                            <p className="text-slate-300 text-lg group-hover:text-white transition-colors">(555) 123-4567</p>
                            <p className="text-slate-400 text-sm mt-1">Mon-Fri 9am-6pm</p>
                         </div>
-                     </div>
-                     <div className="flex items-start gap-6 group cursor-pointer">
+                     </a>
+                     <a href="https://maps.google.com/?q=123+Medical+Plaza,+New+York,+NY" target="_blank" rel="noopener noreferrer" className="flex items-start gap-6 group cursor-pointer">
                         <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-primary-600 transition-colors">
                            <MapPin className="text-white" size={24}/>
                         </div>
@@ -705,8 +825,8 @@ const App: React.FC = () => {
                            <p className="text-slate-300 text-lg group-hover:text-white transition-colors">123 Medical Plaza, Suite 400</p>
                            <p className="text-slate-300 text-lg group-hover:text-white transition-colors">New York, NY 10001</p>
                         </div>
-                     </div>
-                     <div className="flex items-start gap-6 group cursor-pointer">
+                     </a>
+                     <a href="mailto:hello@luminadental.com" className="flex items-start gap-6 group cursor-pointer">
                         <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-primary-600 transition-colors">
                            <Mail className="text-white" size={24}/>
                         </div>
@@ -714,7 +834,7 @@ const App: React.FC = () => {
                            <div className="font-bold text-xl mb-1">Email</div>
                            <p className="text-slate-300 text-lg group-hover:text-white transition-colors">hello@luminadental.com</p>
                         </div>
-                     </div>
+                     </a>
                   </div>
                </div>
                
@@ -737,8 +857,8 @@ const App: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-secondary-950 text-white pt-24 pb-12 border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-16">
+      <footer className="bg-secondary-900 text-white pt-24 pb-12 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-12 mb-16">
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-2 mb-6">
               <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">L</div>
@@ -749,7 +869,7 @@ const App: React.FC = () => {
             </p>
             <div className="flex gap-3">
               {[Facebook, Instagram, Twitter, Linkedin].map((Icon, i) => (
-                 <a key={i} href="#" className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-primary-600 transition-all hover:scale-110 hover:-translate-y-1">
+                 <a key={i} href="#" onClick={preventDefault} className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-primary-600 transition-all hover:scale-110 hover:-translate-y-1">
                    <Icon size={18} />
                  </a>
               ))}
@@ -759,8 +879,21 @@ const App: React.FC = () => {
           <div>
             <h4 className="text-lg font-bold mb-8 text-white">Quick Links</h4>
             <ul className="space-y-4 text-slate-400">
-              {['About Us', 'Services', 'Case Studies', 'Reviews'].map(link => (
-                <li key={link}><a href="#" className="hover:text-primary-500 transition-colors flex items-center gap-2 group"><ArrowRight size={14} className="text-primary-600 group-hover:translate-x-1 transition-transform"/> {link}</a></li>
+              {[
+                { name: 'About Us', href: '#about' },
+                { name: 'Services', href: '#services' },
+                { name: 'Gallery', href: '#gallery' },
+                { name: 'Reviews', href: '#reviews' }
+              ].map(link => (
+                <li key={link.name}>
+                  <a 
+                    href={link.href}
+                    onClick={(e) => scrollToSection(e, link.href)}
+                    className="hover:text-primary-500 transition-colors flex items-center gap-2 group"
+                  >
+                    <ArrowRight size={14} className="text-primary-600 group-hover:translate-x-1 transition-transform"/> {link.name}
+                  </a>
+                </li>
               ))}
             </ul>
           </div>
@@ -768,27 +901,30 @@ const App: React.FC = () => {
           <div>
              <h4 className="text-lg font-bold mb-8 text-white">Services</h4>
             <ul className="space-y-4 text-slate-400">
-              <li><a href="#" className="hover:text-primary-500 transition-colors">Cosmetic Dentistry</a></li>
-              <li><a href="#" className="hover:text-primary-500 transition-colors">Dental Implants</a></li>
-              <li><a href="#" className="hover:text-primary-500 transition-colors">Invisalign</a></li>
-              <li><a href="#" className="hover:text-primary-500 transition-colors">General Checkups</a></li>
+              {[
+                { name: 'Cosmetic Dentistry', href: '#services' },
+                { name: 'Dental Implants', href: '#services' },
+                { name: 'Invisalign', href: '#services' },
+                { name: 'General Checkups', href: '#services' }
+              ].map(link => (
+                <li key={link.name}>
+                  <a 
+                    href={link.href}
+                    onClick={(e) => scrollToSection(e, link.href)}
+                    className="hover:text-primary-500 transition-colors"
+                  >
+                    {link.name}
+                  </a>
+                </li>
+              ))}
             </ul>
-          </div>
-
-          <div>
-            <h4 className="text-lg font-bold mb-8 text-white">Newsletter</h4>
-            <p className="text-slate-400 mb-4">Subscribe to get the latest dental health tips.</p>
-            <form className="flex gap-2">
-               <input type="email" placeholder="Your Email" className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm w-full focus:outline-none focus:border-primary-500 transition-colors" />
-               <button className="bg-primary-600 text-white rounded-lg px-4 hover:bg-primary-700 transition-colors"><ArrowRight size={18}/></button>
-            </form>
           </div>
         </div>
         <div className="border-t border-white/10 pt-8 text-center text-slate-500 text-sm flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto px-6 gap-4">
           <div>© {new Date().getFullYear()} Lumina Dental Clinic. All rights reserved.</div>
           <div className="flex gap-6">
-             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-             <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+             <a href="#" onClick={preventDefault} className="hover:text-white transition-colors">Privacy Policy</a>
+             <a href="#" onClick={preventDefault} className="hover:text-white transition-colors">Terms of Service</a>
           </div>
         </div>
       </footer>
