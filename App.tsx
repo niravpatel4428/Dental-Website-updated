@@ -794,7 +794,7 @@ const App: React.FC = () => {
       </footer>
       
       {/* AI Chat Widget */}
-      <AIChat />
+      {/* <AIChat /> */}
     </div>
   );
 };
