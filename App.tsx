@@ -393,8 +393,8 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-6">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Signature_sample.svg" alt="Signature" className="h-12 opacity-40 hover:opacity-100 transition-opacity" />
-              <div className="h-10 w-px bg-slate-200"></div>
+              {/* <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Signature_sample.svg" alt="Signature" className="h-12 opacity-40 hover:opacity-100 transition-opacity" />
+              <div className="h-10 w-px bg-slate-200"></div> */}
               <div className="text-sm font-bold text-secondary-900 uppercase tracking-widest">
                 Lead Dentist
               </div>
